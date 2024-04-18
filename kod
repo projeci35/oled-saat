@@ -1,0 +1,60 @@
+#include <SPI.h>
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+#include <DS1302.h>
+
+#define SCREEN_WIDTH 128
+#define SCREEN_HEIGHT 64
+
+#define OLED_RESET     -1
+#define SCREEN_ADDRESS 0x3C
+
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+DS1302 rtc(2, 3, 4); // RTC pin bağlantıları (CE, IO, SCLK)
+
+void setup() {
+  Serial.begin(9600);
+
+  // OLED ekranı başlat
+  if (!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
+    Serial.println(F("SSD1306 başlatılamadı. OLED bağlantılarını kontrol edin."));
+    for (;;);
+  }
+
+  // RTC başlat
+  rtc.begin();
+
+  // RTC'yi varsayılan tarih ve saat ile ayarla
+  rtc.setDOW(WEDNESDAY);
+  rtc.setTime(12, 0, 0);
+  rtc.setDate(1, 1, 2024);
+}
+
+void loop() {
+  // RTC'den saat bilgisini al
+  RTCDateTime dt = rtc.getDateTime();
+
+  // Saat, dakika ve saniyeyi al
+  int hour = dt.hour;
+  int minute = dt.minute;
+  int second = dt.second;
+
+  // Saat bilgisini ekrana yazdır
+  display.clearDisplay();
+  display.setTextSize(1);
+  display.setTextColor(SSD1306_WHITE);
+  display.setCursor(0, 0);
+  display.print("Saat: ");
+  if (hour < 10) display.print("0");
+  display.print(hour);
+  display.print(":");
+  if (minute < 10) display.print("0");
+  display.print(minute);
+  display.print(":");
+  if (second < 10) display.print("0");
+  display.println(second);
+  display.display();
+
+  delay(1000); // 1 saniye bekleyin
+}
